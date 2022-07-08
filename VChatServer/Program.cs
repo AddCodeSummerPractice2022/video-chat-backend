@@ -18,14 +18,24 @@ app.UseWebSockets(webSocketOptions);
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/api/roomlist", () =>
+app.MapGet("/api/room/list", () =>
 {
     if(RoomList.Count == 0)
         Results.NotFound(new { message = "Не найдено ни одной комнаты." });
     return RoomList;
 });
 
-app.MapPost("/api/newroom", () => 
+app.MapGet("/api/room/{id}/clients", (string id) =>
+{
+    Room? room = RoomList.FirstOrDefault(u => u.Id == id);
+
+    if (room == null)
+        Results.NotFound(new { message = "Комната не найдена." });
+
+    return room;
+});
+
+app.MapPost("/api/room/new", () => 
 {
     Room room = new Room();
     room.Id = Guid.NewGuid().ToString();
@@ -33,7 +43,7 @@ app.MapPost("/api/newroom", () =>
 });
 
 //Дополнительно нужно через  WebSocket реализовать проверку на выход последнего человека из списка.
-app.MapDelete("/api/del_empty_room/{id}", (string id) =>
+app.MapDelete("/api/room/{id}/delete", (string id) =>
 {
     Room? room = RoomList.FirstOrDefault(u => u.Id == id);
 
