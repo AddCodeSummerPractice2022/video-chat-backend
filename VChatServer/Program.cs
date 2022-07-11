@@ -58,9 +58,7 @@ app.MapPost("/api/room/new", async (HttpContext context) =>
     {
         roomName = await reader.ReadToEndAsync();
     }
-    Room room = new Room();
-    room.Name = roomName;
-    room.Id = Guid.NewGuid().ToString();
+    Room room = new Room(Guid.NewGuid().ToString(), roomName);
     RoomList.Add(room);
 });
 
