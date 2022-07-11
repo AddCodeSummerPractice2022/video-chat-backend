@@ -25,6 +25,8 @@ app.MapGet("/api/room/list", () =>
     return RoomList;
 });
 
+//—делать возврат списка подключЄнных к комнате пользователей, (Id пользовател€, им€ пользовател€)
+//«апрос должен приходить со страницы с комнатой.
 app.MapGet("/api/room/{id}/clients", (string id) =>
 {
     Room? room = RoomList.FirstOrDefault(u => u.Id == id);
@@ -35,9 +37,11 @@ app.MapGet("/api/room/{id}/clients", (string id) =>
     return room;
 });
 
-app.MapPost("/api/room/new", () => 
+// ак в поле CurrentRoomId пользовател€ установить Id созданной комнаты?
+app.MapPost("/api/room/new/{nameroom}", (string nameroom) => 
 {
     Room room = new Room();
+    room.Name = nameroom;
     room.Id = Guid.NewGuid().ToString();
     RoomList.Add(room);
 });
