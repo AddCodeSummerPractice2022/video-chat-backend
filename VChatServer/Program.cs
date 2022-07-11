@@ -43,6 +43,7 @@ app.MapPost("/api/room/new/{nameroom}", (string nameroom) =>
     RoomList.Add(room);
 });
 
+/*
 //ƒополнительно нужно через  WebSocket реализовать проверку на выход последнего человека из списка.
 app.MapDelete("/api/room/{id}/delete", (string id) =>
 {
@@ -56,6 +57,7 @@ app.MapDelete("/api/room/{id}/delete", (string id) =>
     room = null;
     return Results.Ok(new { message = " омната удалена." });
 });
+*/
 
 app.MapControllers();
 
