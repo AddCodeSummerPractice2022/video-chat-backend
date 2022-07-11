@@ -71,8 +71,6 @@ public class WebSocketController : ControllerBase
                     CancellationToken.None);
             }
         }
-
-
     }
 
 }
