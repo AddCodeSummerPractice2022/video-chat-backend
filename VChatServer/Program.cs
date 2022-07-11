@@ -22,7 +22,7 @@ app.MapGet("/api/room/list", () =>
 {
     List<RoomInfo> RoomInfoList = new List<RoomInfo>();
     if(RoomList.Count == 0)
-        Results.NotFound(new { message = "Не найдено ни одной комнаты." });
+        Results.NotFound(new { message = "РќРµ РЅР°Р№РґРµРЅРѕ РЅРё РѕРґРЅРѕР№ РєРѕРјРЅР°С‚С‹." });
     foreach (var room in RoomList)
     {
         RoomInfo roominfo = new RoomInfo(room.Id, room.Name, room.Count);
@@ -34,11 +34,20 @@ app.MapGet("/api/room/list", () =>
 app.MapGet("/api/room/{id}", (string id) =>
 {
     Room? room = RoomList.FirstOrDefault(u => u.Id == id);
+    List<ClientInfo> ClientInfoList = new List<ClientInfo>();
 
     if (room == null)
-        Results.NotFound(new { message = "Комната не найдена." });
+        Results.NotFound(new { message = "ГЉГ®Г¬Г­Г ГІГ  Г­ГҐ Г­Г Г©Г¤ГҐГ­Г ." });
+    else
+    {
+        for (int i = 0; i < room.Count; i++)
+        {
+            ClientInfo clientinfo = new ClientInfo(room[i].Id, room[i].Name);
+            ClientInfoList.Add(clientinfo);
+        }
+    }
 
-    return room;
+    return ClientInfoList;
 });
 
 app.MapPost("/api/room/new", async (HttpContext context) => 
