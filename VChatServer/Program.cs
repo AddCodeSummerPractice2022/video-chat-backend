@@ -21,26 +21,23 @@ app.UseStaticFiles();
 app.MapGet("/api/room/list", () =>
 {
     List<RoomInfo> RoomInfoList = new List<RoomInfo>();
-
-    for (int i = 0; i < RoomList.Count; i++)
+    if(RoomList.Count == 0)
+        Results.NotFound(new { message = "РќРµ РЅР°Р№РґРµРЅРѕ РЅРё РѕРґРЅРѕР№ РєРѕРјРЅР°С‚С‹." });
+    foreach (var room in RoomList)
     {
-        RoomInfo roominfo = new RoomInfo(RoomList[i].Id, RoomList[i].Name, RoomList[i].Count);
+        RoomInfo roominfo = new RoomInfo(room.Id, room.Name, room.Count);
         RoomInfoList.Add(roominfo);
     }
-
-    if (RoomInfoList.Count == 0)
-        Results.NotFound(new { message = "Не найдено ни одной комнаты." });
-
     return RoomInfoList;
 });
 
-app.MapGet("/api/room/{id}/clients", (string id) =>
+app.MapGet("/api/room/{id}", (string id) =>
 {
     Room? room = RoomList.FirstOrDefault(u => u.Id == id);
     List<ClientInfo> ClientInfoList = new List<ClientInfo>();
 
     if (room == null)
-        Results.NotFound(new { message = "Комната не найдена." });
+        Results.NotFound(new { message = "ГЉГ®Г¬Г­Г ГІГ  Г­ГҐ Г­Г Г©Г¤ГҐГ­Г ." });
     else
     {
         for (int i = 0; i < room.Count; i++)
@@ -53,28 +50,94 @@ app.MapGet("/api/room/{id}/clients", (string id) =>
     return ClientInfoList;
 });
 
-app.MapPost("/api/room/new/{nameroom}", (string nameroom) => 
+app.MapPost("/api/room/new", async (HttpContext context) => 
 {
-    Room room = new Room(Guid.NewGuid().ToString(), nameroom);
+    string roomName = "";
+
+    using (var reader = new StreamReader(context.Request.Body))
+    {
+        roomName = await reader.ReadToEndAsync();
+    }
+    Room room = new Room();
+    room.Name = roomName;
+    room.Id = Guid.NewGuid().ToString();
     RoomList.Add(room);
 });
 
-/*
-//Дополнительно нужно через  WebSocket реализовать проверку на выход последнего человека из списка.
-app.MapDelete("/api/room/{id}/delete", (string id) =>
+app.MapGet("/ws/{roomId}", async (string roomId, HttpContext context) =>
 {
-    Room? room = RoomList.FirstOrDefault(u => u.Id == id);
+    if (context.WebSockets.IsWebSocketRequest)
+    {
+        var currentRoom = RoomList.FirstOrDefault(r => r.Id == roomId);
+        if (currentRoom == null)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+        }
+        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        Client client = new Client();
+        client.WebSocket = webSocket;
+        client.Id = Guid.NewGuid().ToString();
+        client.Name = Guid.NewGuid().ToString();
+        currentRoom.Add(client);
+        Console.WriteLine(currentRoom.Count());
 
-    if (room == null) return Results.NotFound(new { message = "Комната не найдена." });
-
-    if (room.Count > 0) return Results.NotFound(new { message = "Комната не пустая." });
-
-    RoomList.Remove(room);
-    room = null;
-    return Results.Ok(new { message = "Комната удалена." });
+        await Receive(client, currentRoom, RoomList);
+    }
+    else
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+    }
 });
-*/
 
-app.MapControllers();
+static async Task Receive(Client client, Room currentRoom, List<Room> roomList)
+{
+    var buffer = new byte[1024 * 4];
+    var receiveResult = await client.WebSocket.ReceiveAsync(
+        new ArraySegment<byte>(buffer), CancellationToken.None);
+    var package = new Package();
+    package.MessageInformation = receiveResult;
+    package.Message = buffer;
+
+    while (!receiveResult.CloseStatus.HasValue)
+    {
+        await Send(client, currentRoom, package);
+        receiveResult = await client.WebSocket.ReceiveAsync(
+            new ArraySegment<byte>(buffer), CancellationToken.None);
+    }
+
+    currentRoom.Remove(client);
+
+    await client.WebSocket.CloseAsync(
+        receiveResult.CloseStatus.Value,
+        receiveResult.CloseStatusDescription,
+        CancellationToken.None);
+
+    if (currentRoom.Count == 0)
+    {
+        roomList.Remove(currentRoom);
+    }
+}
+
+
+static async Task Send(Client client, Room currentRoom, Package package)
+{
+    foreach (var c in currentRoom)
+    {
+        if (c != client)
+        {
+            await c.WebSocket.SendAsync(
+                new ArraySegment<byte>(package.Message, 0, package.MessageInformation.Count),
+                package.MessageInformation.MessageType,
+                package.MessageInformation.EndOfMessage,
+                CancellationToken.None);
+
+            await client.WebSocket.SendAsync(
+                new ArraySegment<byte>(package.Message, 0, package.MessageInformation.Count),
+                package.MessageInformation.MessageType,
+                package.MessageInformation.EndOfMessage,
+                CancellationToken.None);
+        }
+    }
+}
 
 app.Run();
