@@ -20,26 +20,42 @@ app.UseStaticFiles();
 
 app.MapGet("/api/room/list", () =>
 {
-    if(RoomList.Count == 0)
+    List<RoomInfo> RoomInfoList = new List<RoomInfo>();
+
+    for (int i = 0; i < RoomList.Count; i++)
+    {
+        RoomInfo roominfo = new RoomInfo(RoomList[i].Id, RoomList[i].Name, RoomList[i].Count);
+        RoomInfoList.Add(roominfo);
+    }
+
+    if (RoomInfoList.Count == 0)
         Results.NotFound(new { message = "Не найдено ни одной комнаты." });
-    return RoomList;
+
+    return RoomInfoList;
 });
 
 app.MapGet("/api/room/{id}/clients", (string id) =>
 {
     Room? room = RoomList.FirstOrDefault(u => u.Id == id);
+    List<ClientInfo> ClientInfoList = new List<ClientInfo>();
 
     if (room == null)
         Results.NotFound(new { message = "Комната не найдена." });
+    else
+    {
+        for (int i = 0; i < room.Count; i++)
+        {
+            ClientInfo clientinfo = new ClientInfo(room[i].Id, room[i].Name);
+            ClientInfoList.Add(clientinfo);
+        }
+    }
 
-    return room;
+    return ClientInfoList;
 });
 
 app.MapPost("/api/room/new/{nameroom}", (string nameroom) => 
 {
-    Room room = new Room();
-    room.Name = nameroom;
-    room.Id = Guid.NewGuid().ToString();
+    Room room = new Room(Guid.NewGuid().ToString(), nameroom);
     RoomList.Add(room);
 });
 
