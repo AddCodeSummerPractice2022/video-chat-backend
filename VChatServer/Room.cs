@@ -11,18 +11,4 @@
             this.Name = Name;
         }
     }
-
-    public class RoomInfo
-    {
-        public string Id = "";
-        public string Name = "";
-        public int NumberOfClients = 0;
-
-        public RoomInfo(string Id, string Name, int NumberOfClients)
-        {
-            this.Id = Id;
-            this.Name = Name;
-            this.NumberOfClients = NumberOfClients;
-        }
-    }
 }
