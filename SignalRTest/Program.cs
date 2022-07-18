@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.SignalR;
 using SignalRTest;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+
+
+
 
 app.UseRouting();
 
