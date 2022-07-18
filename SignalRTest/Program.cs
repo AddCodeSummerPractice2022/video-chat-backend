@@ -10,7 +10,13 @@ var app = builder.Build();
 
 
 
-app.UseCors(builder => builder.AllowAnyOrigin());
+app.UseCors(builder =>
+{
+    builder.WithOrigins("http://localhost:8080", "http://localhost:3000", "http://5.63.155.241")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+});
 
 app.UseRouting();
 
