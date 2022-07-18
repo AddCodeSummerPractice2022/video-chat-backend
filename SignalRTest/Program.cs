@@ -4,6 +4,7 @@ using SignalRTest;
 var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddSignalR();
+builder.Services.AddCors();
 
 var app = builder.Build();
 
