@@ -42,7 +42,6 @@ app.UseEndpoints(endpoints =>
 
         if (Rooms.rooms.Count == 0)
             return RoomInfoList;
-        //Results.NotFound(new { message = "�� ������� �� ����� �������." });
         else
         {
             foreach (var room in Rooms.rooms)
