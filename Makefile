@@ -1,14 +1,16 @@
 # vars
 
 DOCKER_NAMESPACE=addcode-practicum
-DOCKER_IMAGE=$(DOCKER_NAMESPACE):video-chat-backend
-DOCKER_CONTAINER_NAME=video-chat-backend
+DOCKER_IMAGE_API=$(DOCKER_NAMESPACE):video-chat-api
+DOCKER_IMAGE_PROXY=$(DOCKER_NAMESPACE):video-chat-proxy
+DOCKER_CONTAINER_NAME=video-chat-api
 DOCKER_HOST=ssh://$(user)@$(ip)
 
 # build
 
 build:
-	docker build -t $(DOCKER_IMAGE) .
+	docker build -f deploy/Dockerfile -t $(DOCKER_IMAGE_API) .
+	docker build -f deploy/nginx/Dockerfile -t $(DOCKER_IMAGE_PROXY) .
 
 # start
 
@@ -24,7 +26,8 @@ clear:
 # deploy
 
 deployment:
-	DOCKER_HOST=ssh://$(user)@$(ip) docker build -t $(DOCKER_IMAGE) .
-	DOCKER_HOST=ssh://$(user)@$(ip) docker stop $(DOCKER_CONTAINER_NAME)
-	DOCKER_HOST=ssh://$(user)@$(ip) docker rm $(DOCKER_CONTAINER_NAME)
-	DOCKER_HOST=ssh://$(user)@$(ip) docker run -d --name $(DOCKER_CONTAINER_NAME) -p 5000:5000 $(DOCKER_IMAGE)
+	DOCKER_HOST=ssh://$(user)@$(ip) docker build -f deploy/Dockerfile -t $(DOCKER_IMAGE_API) .
+	DOCKER_HOST=ssh://$(user)@$(ip) docker build -f deploy/nginx/Dockerfile -t $(DOCKER_IMAGE_PROXY) .
+	DOCKER_HOST=ssh://$(user)@$(ip) docker-compose -f deploy/docker-compose.yml stop
+	DOCKER_HOST=ssh://$(user)@$(ip) docker-compose -f deploy/docker-compose.yml rm -f
+	DOCKER_HOST=ssh://$(user)@$(ip) docker-compose -f deploy/docker-compose.yml up -d

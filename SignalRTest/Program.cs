@@ -12,7 +12,7 @@ var app = builder.Build();
 
 app.UseCors(builder =>
 {
-    builder.WithOrigins("http://localhost:8080", "http://localhost:3000", "http://5.63.155.241")
+    builder.WithOrigins("http://localhost:8080", "http://localhost:3000", "https://ff6f61.ru")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials();
@@ -23,7 +23,7 @@ app.UseRouting();
 app.Use(async (context, next) =>
 {
     var hubContext = context.RequestServices.GetRequiredService<IHubContext<RoomsHub>>();
-    
+
     HubContext.hubContext = hubContext;
 
     if (next != null)
@@ -42,7 +42,7 @@ app.UseEndpoints(endpoints =>
 
         if (Rooms.rooms.Count == 0)
             return RoomInfoList;
-        //Results.NotFound(new { message = "Не найдено ни одной комнаты." });
+        //Results.NotFound(new { message = "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ." });
         else
         {
             foreach (var room in Rooms.rooms)
